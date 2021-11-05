@@ -239,7 +239,8 @@ static void stabilizerTask(void* param)
     // update sensorData struct (for logging variables)
     sensorsAcquire(&sensorData, tick);
 
-    if (healthShallWeRunTest()) {
+    // if (healthShallWeRunTest()) {
+      if (false){
       healthRunTests(&sensorData);
     } else {
       // allow to update estimator dynamically
@@ -262,6 +263,22 @@ static void stabilizerTask(void* param)
       collisionAvoidanceUpdateSetpoint(&setpoint, &sensorData, &state, tick);
 
       controller(&control, &setpoint, &sensorData, &state, tick);
+      
+      
+      //control.thrust = setpoint.thrust; // Mono
+
+      control.thrust=  setpoint.position.x; // Bico //m3
+      control.thrust2 = setpoint.position.y; // Bico //m4
+      control.servo=  setpoint.position.z; // Bico //m2
+      control.servo2 = setpoint.attitude.yaw; // Bico //m1
+  
+      // control.thrust = setpoint.position.z; // Bico
+      // control.thrust2 = setpoint.attitude.yaw;  // Mono
+
+      // control.thrust = setpoint.position.x; // 3 wings
+      // control.thrust2 = setpoint.position.y; // 3 wings
+      // control.thrust3 = setpoint.position.z; // 3 wings
+      
 
       checkEmergencyStopTimeout();
 
@@ -270,9 +287,10 @@ static void stabilizerTask(void* param)
       // we are ok to fly, or if the Crazyflie is in flight.
       //
       supervisorUpdate(&sensorData);
-
+      
       if (emergencyStop || (systemIsArmed() == false)) {
-        powerStop();
+        // powerStop();
+        powerDistribution(&control);
       } else {
         powerDistribution(&control);
       }
@@ -355,7 +373,7 @@ LOG_GROUP_START(stabilizer)
 LOG_ADD(LOG_FLOAT, roll, &state.attitude.roll)
 LOG_ADD(LOG_FLOAT, pitch, &state.attitude.pitch)
 LOG_ADD(LOG_FLOAT, yaw, &state.attitude.yaw)
-LOG_ADD(LOG_FLOAT, thrust, &control.thrust)
+LOG_ADD(LOG_FLOAT, thrust1, &control.thrust)
 
 STATS_CNT_RATE_LOG_ADD(rtStab, &stabilizerRate)
 LOG_ADD(LOG_UINT32, intToOut, &inToOutLatency)
